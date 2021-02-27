@@ -1,110 +1,14 @@
+require('dotenv').config()
 const express = require('express');
+const post = require('./post');
 const app = express();
-const axios = require('axios');
 
-const token = '1613451774:AAFGFFtTDL2bSkWzVTgE041tGB22pr3Mfeg';
-const url = `https://api.telegram.org/bot${token}`;
-
-const options = {
-  reply_markup: JSON.stringify({
-    inline_keyboard: [
-      [{ text: 'Кнопка 1', callback_data: 'Button 1' }],
-      [{ text: 'Кнопка 2', callback_data: '2' }],
-      [{ text: 'Кнопка 3', callback_data: 'btn3' }]
-    ]
-  })
-};
-
-const handleTextMessage = (body, res) => {
-  const { chat, text, options } = body;
-  axios.post(`${url}/sendMessage`, { chat_id: chat.id, text, ...options })
-  .then(({ data }) => {
-    res.json(data);
-  })
-}
-
-const handleVoiceMessage = (body, res) => {
-  const { chat, voice } = body;
-  axios.post(`${url}/sendVoice`, { chat_id: chat.id, voice: voice.file_id })
-  .then(({ data }) => {
-    res.json(data);
-  })
-}
-
-const handleVideoNoteMessage = (body, res) => {
-  const { chat, video_note } = body;
-  axios.post(`${url}/sendVideoNote`, { chat_id: chat.id, video_note: video_note.file_id })
-  .then(({ data }) => {
-    res.json(data);
-  })
-}
-
-const handleLocationMessage = (body, res) => {
-  const { chat, location } = body;
-  axios.post(`${url}/sendLocation`, { chat_id: chat.id, ...location })
-  .then(({ data }) => {
-    res.json(data);
-  })
-}
-
-const handleGetMessage = (message, res) => {
-  if (message.text) {
-    const args = {
-      ...message
-    }
-    if (message.text === 'buttons') {
-      args.options = options;
-    }
-    handleTextMessage(args, res)
-  }
-  else if (message.voice) {
-    handleVoiceMessage(message, res)
-  }
-  else if (message.video_note) {
-    handleVideoNoteMessage(message, res)
-  }
-  else if (message.location) {
-    handleLocationMessage(message, res)
-  }
-}
-
-const handleGetEditedMessage = (message, res) => {
-  const { chat, message_id } = message;
-  const args = {
-    chat,
-    text: `edited message ${message_id}`
-  }
-  handleTextMessage(args, res)
-}
-
-const handleKeyboardButtonPush = (callback_query, res) => {
-  const args = {
-    chat: callback_query.message.chat,
-    text: callback_query.data
-  }
-  handleTextMessage(args, res);
-}
+const PORT = process.env.PORT;
 
 app.use(express.json());
+app.use('/tg', post);
 
-app.post('/tg', (req, res) => {
-  const body = req.body;
-
-  if (body && body.message) {
-    handleGetMessage(body.message, res)
-  }
-  else if (body && body.edited_message) {
-    handleGetEditedMessage(body.edited_message, res)
-  }
-  else if (body.callback_query) {
-    handleKeyboardButtonPush(body.callback_query, res)
-  }
-});
-
-app.listen(80);
-
-// axios.get(`https://api.telegram.org/bot${token}/getMe`)
-// .then(({ data }) => {
-//   data;
-// })
+app.listen(PORT, () => {
+  console.log(`App is listening to port: ${PORT}`)
+})
 
