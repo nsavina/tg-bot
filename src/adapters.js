@@ -23,19 +23,19 @@ const adaptMessage = (message) => {
       adaptedMessage.options = options;
     }
   }
-  else if (message.voice) {
+  else if (message.voice && message.voice.file_id) {
     adaptedMessage = {
       type: 'voice',
       body: {
-        voice: message.voice,
+        voice: message.voice.file_id,
       }
     }
   }
-  else if (message.video_note) {
+  else if (message.video_note && message.video_note.file_id) {
     adaptedMessage = {
       type: 'video_note',
       body: {
-        video_note: message.video_note,
+        video_note: message.video_note.file_id,
       }
     }
   }
@@ -72,7 +72,7 @@ const adaptEditedMessage = (message) => {
     }
     else throw new TypeError('No chat id');
   }
-  else throw new TypeError('Empty message');
+  else throw new TypeError('No message id');
 }
 
 const adaptKeyboardMessage = (callback_query) => {
@@ -81,7 +81,7 @@ const adaptKeyboardMessage = (callback_query) => {
       const adaptedMessage = {
         type: 'text',
         body: {
-          chat_id: callback_query.message.chat,
+          chat_id: callback_query.message.chat.id,
           text: callback_query.data,
         }
       }
@@ -105,4 +105,7 @@ const adaptGetToPostMessage = (body) => {
   else throw new TypeError('Unknown message type');
 }
 
-module.exports = adaptGetToPostMessage;
+module.exports.adaptMessage = adaptMessage;
+module.exports.adaptEditedMessage = adaptEditedMessage;
+module.exports.adaptKeyboardMessage = adaptKeyboardMessage;
+module.exports.adaptGetToPostMessage = adaptGetToPostMessage;

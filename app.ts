@@ -15,4 +15,4 @@ app.listen(PORT, () => {
   console.log(`App is listening to port: ${PORT}`)
 })
 
-module.exports = app;
+export default app;
